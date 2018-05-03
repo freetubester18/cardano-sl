@@ -18,6 +18,7 @@ import           Universum
 import           Control.Lens (magnify, zoom)
 import           Control.Monad.Except (throwError)
 import           Data.Default (Default, def)
+import           Data.Reflection (given)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.List.NonEmpty as NE
 import           Formatting (build, sformat, (%))
@@ -32,6 +33,7 @@ import qualified Pos.DB.GState.Stakes as DB
 import           Pos.Exception (assertionFailed)
 import           Pos.Txp.Base (flattenTxPayload)
 import qualified Pos.Txp.DB as DB
+import           Pos.Txp.Configuration (TxpConfiguration (..))
 import           Pos.Txp.Logic.Common (buildUtxo, buildUtxoForRollback)
 import           Pos.Txp.Settings.Global (TxpBlock, TxpBlund, TxpCommonMode, TxpGlobalApplyMode,
                                           TxpGlobalRollbackMode, TxpGlobalSettings (..),
@@ -70,7 +72,7 @@ verifyBlocks ::
 verifyBlocks verifyAllIsKnown newChain = runExceptT $ do
     bvd <- gsAdoptedBVData
     let verifyPure :: [TxAux] -> UtxoM (Either ToilVerFailure TxpUndo)
-        verifyPure = runExceptT . verifyToil bvd epoch verifyAllIsKnown
+        verifyPure = runExceptT . verifyToil bvd (tcBlacklistSrcAddrs given) epoch verifyAllIsKnown
         foldStep ::
                (UtxoModifier, [TxpUndo])
             -> TxpBlock
